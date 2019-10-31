@@ -24,6 +24,7 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name="cartline", unique_together={("checkout", "variant", "data")}
         ),
+
         migrations.AlterField(
             model_name="checkout",
             name="shipping_method",

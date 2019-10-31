@@ -1,6 +1,7 @@
 """Checkout-related ORM models."""
 from decimal import Decimal
 from operator import attrgetter
+from pprint import pprint
 from uuid import uuid4
 
 from django.conf import settings
@@ -150,6 +151,8 @@ class Checkout(ModelWithMetadata):
 
 
 class CheckoutLine(models.Model):
+    print("Inside checkout:models  CheckoutLine Begin")
+
     """A single checkout line.
 
     Multiple lines in the same checkout can refer to the same product variant if
@@ -163,7 +166,9 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    orderline_note = models.CharField(max_length=255, blank=True, null=True)
     data = JSONField(blank=True, default=dict)
+    print("Inside CheckoutLine: data:" + str(data))
 
     class Meta:
         unique_together = ("checkout", "variant", "data")
@@ -178,19 +183,24 @@ class CheckoutLine(models.Model):
         if not isinstance(other, CheckoutLine):
             return NotImplemented
 
-        return self.variant == other.variant and self.quantity == other.quantity
+        return self.variant == other.variant and self.quantity == other.quantity and self.orderline_note == other.orderline_note
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return "CheckoutLine(variant=%r, quantity=%r)" % (self.variant, self.quantity)
+        print("Inside checkout:models  CheckoutLine.__repr__: self.orderline_note:"+self.orderline_note)
+        return "CheckoutLine(variant=%r, quantity=%r, orderline_note=%r)" % (self.variant, self.quantity, self.orderline_note)
 
     def __getstate__(self):
-        return self.variant, self.quantity
+        print("Inside checkout:models  CheckoutLine.__getstate__: self.orderline_note:" + self.orderline_note)
+        return self.variant, self.quantity, self.orderline_note
 
     def __setstate__(self, data):
-        self.variant, self.quantity = data
+        self.variant, self.quantity, self.orderline_note = data
+
+    def get_orderline_note(self):
+        return self.orderline_note
 
     def get_total(self, discounts=None):
         """Return the total price of this line."""

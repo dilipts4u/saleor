@@ -258,10 +258,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
 
+
         # Create the checkout lines
         if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
+            for variant, quantity, orderline_note in zip(variants, quantities):
                 try:
+                    print("CheckoutCreate: quantity:%d orderline_note:%s", quantity, orderline_note)
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
                     raise ValidationError(
@@ -325,15 +327,18 @@ class CheckoutLinesAdd(BaseMutation):
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         quantities = [line.get("quantity") for line in lines]
+        orderline_notes = [line.get("orderline_note") for line in lines]
 
         check_lines_quantity(variants, quantities)
         update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
         if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
+            for variant, quantity, orderline_note in zip(variants, quantities, orderline_notes):
                 try:
+                    print("CheckoutLinesAdd: quantity:%d orderline_note:%s", quantity,
+                          orderline_note)
                     add_variant_to_checkout(
-                        checkout, variant, quantity, replace=replace
+                        checkout, variant, quantity, orderline_note, replace=replace
                     )
                 except InsufficientStock as exc:
                     raise ValidationError(

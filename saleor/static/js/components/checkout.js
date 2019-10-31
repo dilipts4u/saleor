@@ -102,6 +102,7 @@ export default $(document).ready(e => {
     let $deleteIcon = $(this).find(".checkout-preview-item-delete");
     $(this).on("change", $quantityInput, e => {
       let newQuantity = $quantityInput.val();
+      alert("orderline_input:"+orderline_input)
       $.ajax({
         url: checkoutFormUrl,
         method: "POST",

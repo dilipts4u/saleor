@@ -52,19 +52,11 @@
             </div>
             <div class="col-3">
               <div class="row">
-                 <!--
-                <form>   <div class="form-group">-->
-                   <div class="checkout-preview__line__quantity">
+                   <div class="checkout-preview__line__note">
                      <!--<textarea id="id_orderline_note" maxlength="250" class="form-control" name="orderline_note"></textarea>-->
                      <textarea id="id_orderline_note" maxlength="250"  name="orderline_note">{{ line.form.orderline_note.value }}</textarea>
                    </div>
-                   <!--
-                   <div class="input input-field">
-                     <textarea id="id_orderline_note" maxlength="250" class="materialize-textarea" name="orderline_note"></textarea>
-                   </div>
-                   -->
                    {% csrf_token %}
-                 <!--</form> -->
               </div>
             </div>
 

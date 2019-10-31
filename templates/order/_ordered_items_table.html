@@ -34,9 +34,14 @@
 {% endif %}
 <div class="table__header order-details__table-header d-none d-sm-block">
   <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-6">
       <small>
         {% trans "Product" context "Order details column title" %}
+      </small>
+    </div>
+    <div class="col-md-2 text-right">
+      <small>
+        {% trans "Order Line Note" context "Order details column title" %}
       </small>
     </div>
     <div class="col-md-2 text-right">
@@ -55,7 +60,7 @@
 {% for line in order %}
   <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
     <div class="row">
-      <div class="col-md-8 order-details__product__description">
+      <div class="col-md-6 order-details__product__description">
         {% if line.variant %}
           <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
             <img data-src="{% get_product_image_thumbnail line.variant.get_first_image size=60 method="thumbnail" %}"
@@ -68,6 +73,17 @@
           <img src="{% placeholder size=60 %}" class="float-left">
           <span>{% display_translated_order_line_name line %}</span>
         {% endif %}
+      </div>
+       <div class="col-md-2 order-details__product__description">
+        <div class="row">
+          <div class="col-md-2 col-2">
+            <p class="text-left">
+              <span>
+                 {{ line.orderline_note }}
+              </span>
+            </p>
+          </div>
+        </div>
       </div>
       <div class="col-md-4 order-details__product__description">
         <div class="row">

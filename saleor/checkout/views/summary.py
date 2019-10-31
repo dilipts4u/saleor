@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import redirect
@@ -22,6 +24,7 @@ from ..utils import (
 
 @transaction.atomic()
 def _handle_order_placement(request, checkout):
+    print("checkout/views/summary _handle_order_placement Begin")
     """Try to create an order and redirect the user as necessary.
 
     This function creates an order from checkout and performs post-create actions
@@ -52,6 +55,7 @@ def _handle_order_placement(request, checkout):
         return redirect("checkout:summary")
 
     # Push the order data into the database
+    print("checkout/summary calling create_order")
     order = create_order(checkout=checkout, order_data=order_data, user=request.user)
 
     # remove checkout after order is created
@@ -62,6 +66,7 @@ def _handle_order_placement(request, checkout):
 
 
 def summary_with_shipping_view(request, checkout):
+    print("checkout/views/summary summary_with_shipping_view Begin")
     """Display order summary with billing forms for a logged in user.
 
     Will create an order if all data is valid.
@@ -81,6 +86,13 @@ def summary_with_shipping_view(request, checkout):
     if updated:
         return _handle_order_placement(request, checkout)
 
+
+    print("checkout/views/summary summary_with_shipping_view checkout:")
+    pprint(checkout)
+    print("checkout/views/summary summary_with_shipping_view checkoutline:")
+    for line in checkout:
+        print("line:"+str(line))
+
     ctx = get_checkout_context(checkout, request.discounts)
     ctx.update(
         {
@@ -90,10 +102,13 @@ def summary_with_shipping_view(request, checkout):
             "note_form": note_form,
         }
     )
+    print("checkout/views/init summary_with_shipping_view: ctx=")
+    print(str(ctx))
     return TemplateResponse(request, "checkout/summary.html", ctx)
 
 
 def anonymous_summary_without_shipping(request, checkout):
+    print("checkout/view/summary anonymous_summary_without_shipping Begin")
     """Display order summary with billing forms for an unauthorized user.
 
     Will create an order if all data is valid.
@@ -117,6 +132,7 @@ def anonymous_summary_without_shipping(request, checkout):
 
 
 def summary_without_shipping(request, checkout):
+    print("checkout/views/summary summary_without_shipping Begin")
     """Display order summary for cases where shipping is not required.
 
     Will create an order if all data is valid.

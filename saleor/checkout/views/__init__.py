@@ -1,4 +1,6 @@
 """Checkout related views."""
+from pprint import pprint
+
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,7 +9,8 @@ from django.template.response import TemplateResponse
 from ...account.forms import LoginForm
 from ...core.taxes import get_display_price, quantize_price, zero_taxed_money
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
-from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
+from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm, \
+    CheckoutLineNoteField
 from ..models import Checkout
 from ..utils import (
     check_product_availability_and_warn,
@@ -105,6 +108,7 @@ def checkout_order_summary(request, checkout):
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
 def checkout_index(request, checkout):
+    print("checkout/views/init  checkout_index Begin")
     """Display checkout details."""
     discounts = request.discounts
     checkout_lines = []
@@ -129,7 +133,12 @@ def checkout_index(request, checkout):
     )
     manager = request.extensions
     for line in lines:
+        print(" Init checkout_index line:")
+        pprint("line:"+str(line))
+        pprint("line.variant:"+str(line.variant))
         initial = {"quantity": line.quantity}
+        #orderline_note = {"orderline_note": line.orderline_note}
+
         form = ReplaceCheckoutLineForm(
             None,
             checkout=checkout,
@@ -147,6 +156,10 @@ def checkout_index(request, checkout):
                 "form": form,
             }
         )
+        print("checkout/views/init checkout_index: Loop checkout_lines:")
+        pprint(checkout_lines)
+        print("checkout/views/init checkout_index: form=")
+        print(str(form))
 
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={"country": default_country})
@@ -167,6 +180,8 @@ def checkout_index(request, checkout):
             "shipping_price_range": shipping_price_range,
         }
     )
+    print("checkout/views/init checkout_index:  End )")
+    print("context=" + str(context))
     return TemplateResponse(request, "checkout/index.html", context)
 
 
@@ -193,11 +208,21 @@ def checkout_shipping_options(request, checkout):
 
 @get_or_empty_db_checkout(Checkout.objects.prefetch_related("lines__variant__product"))
 def update_checkout_line(request, checkout, variant_id):
+    print("checkout/views/init  update_checkout_line Begin")
     """Update the line quantities."""
     if not request.is_ajax():
+        print("redirect to checkout:index ")
         return redirect("checkout:index")
 
+    print("checkout/views/init  update_checkout_line checkout:")
+    pprint(str(checkout))
+
     checkout_line = get_object_or_404(checkout.lines, variant_id=variant_id)
+    #orderline_note = CheckoutLineNoteField(request.POST or None)
+    #print("Init Update CheckoutLine orderline_note:" + str(orderline_note))
+    print("checkout/views/init  update_checkout_line checkout_line:"+ str(checkout_line))
+    print("checkout/views/init  update_checkout_line checkout_line.orderline_note:"+str(checkout_line.orderline_note))
+
     discounts = request.discounts
     status = None
     form = ReplaceCheckoutLineForm(
@@ -206,6 +231,12 @@ def update_checkout_line(request, checkout, variant_id):
         variant=checkout_line.variant,
         discounts=discounts,
     )
+
+    print("checkout/views/init update_checkout_line checkout_line=")
+    pprint(checkout_line)
+    print("checkout/views/init update_checkout_line form=")
+    print(str(form))
+
     manager = request.extensions
     if form.is_valid():
         form.save()

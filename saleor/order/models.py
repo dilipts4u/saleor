@@ -366,6 +366,8 @@ class OrderLine(models.Model):
     translated_variant_name = models.CharField(max_length=255, default="", blank=True)
     product_sku = models.CharField(max_length=255)
     is_shipping_required = models.BooleanField()
+    #TODO
+    orderline_note = models.CharField(max_length=255, default="", blank=True, null=True)
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0)], default=0
@@ -420,6 +422,9 @@ class OrderLine(models.Model):
     @property
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
+
+    def get_orderline_note(self):
+        return self.orderline_note
 
     @property
     def is_digital(self) -> bool:
