@@ -92,6 +92,7 @@ export default $(document).ready(e => {
   });
   $checkoutLine.each(function() {
     let $quantityInput = $(this).find("#id_quantity");
+    let $orderLineInput = $(this).find("#id_orderline_note");
     let checkoutFormUrl = $(this)
       .find(".form-checkout")
       .attr("action");
@@ -102,11 +103,11 @@ export default $(document).ready(e => {
     let $deleteIcon = $(this).find(".checkout-preview-item-delete");
     $(this).on("change", $quantityInput, e => {
       let newQuantity = $quantityInput.val();
-      alert("orderline_input:"+orderline_input)
+      let orderline_input = $orderLineInput.val();
       $.ajax({
         url: checkoutFormUrl,
         method: "POST",
-        data: { quantity: newQuantity },
+        data: { quantity: newQuantity, orderline_input:orderline_input },
         success: response => {
           if (newQuantity === 0) {
             if (response.checkout.numLines === 0) {

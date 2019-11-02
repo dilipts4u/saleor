@@ -189,7 +189,8 @@ class CheckoutLine(models.Model):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        print("Inside checkout:models  CheckoutLine.__repr__: self.orderline_note:"+self.orderline_note)
+        print("Inside checkout:models  CheckoutLine.__repr__: self.orderline_note:")
+        print(self.orderline_note)
         return "CheckoutLine(variant=%r, quantity=%r, orderline_note=%r)" % (self.variant, self.quantity, self.orderline_note)
 
     def __getstate__(self):

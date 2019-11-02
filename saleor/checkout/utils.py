@@ -294,17 +294,6 @@ def update_checkout_quantity(checkout):
     checkout.save(update_fields=["quantity"])
 
 
-def check_line_note(
-    checkout, variant, orderline_note="", replace=False
-) -> Tuple[int, Optional[CheckoutLine]]:
-    """Check if a given variant is in stock and return the new quantity + line."""
-    line = checkout.lines.filter(variant=variant).first()
-    print("check_line_note Line:")
-    pprint(line)
-    line_orderline_note = 0 if line is None else line.orderline_note
-    new_orderline_note = orderline_note if replace else (line_orderline_note)
-
-    return new_orderline_note, line
 
 
 def check_variant_in_stock(
@@ -329,7 +318,7 @@ def check_variant_in_stock(
 
 
 def add_variant_to_checkout(
-    checkout, variant, quantity=1, orderline_note="", replace=False, check_quantity=True
+    checkout, variant, quantity=1, orderline_note='Test', replace=False, check_quantity=True
 ):
     """Add a product variant to checkout.
 
@@ -379,7 +368,7 @@ def add_variant_to_checkout1(
     )
     print("new_quantity:",new_quantity)
 
-    new_line_note, line = check_line_note(checkout, variant, orderline_note=orderline_note, replace=replace)
+    new_line_note, line = orderline_note #check_line_note(checkout, variant, orderline_note=orderline_note, replace=replace)
     print("new_line_note:" + str(new_line_note))
 
     if line is None:
@@ -1096,7 +1085,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-
+    print("checkout/utils create_line_for_order Begin")
     quantity = checkout_line.quantity
     variant = checkout_line.variant
     product = variant.product
@@ -1145,6 +1134,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
     :raises NotApplicable InsufficientStock:
     """
+    print("checkout/utils prepare_order_data Begin")
     order_data = {}
 
     manager = get_extensions_manager()
@@ -1165,6 +1155,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
         }
     )
 
+    print("checkout/utils prepare_order_data create_line_for_order")
     order_data["lines"] = [
         create_line_for_order(checkout_line=line, discounts=discounts)
         for line in checkout

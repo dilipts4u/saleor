@@ -35,24 +35,6 @@ class QuantityField(forms.IntegerField):
         )
 
 
-# class CheckoutLineNoteField(forms.CharField):
-class CheckoutLineNoteField(forms.ModelForm):
-    """Save orderline_note in checkoutline."""
-
-    orderline_note = forms.CharField(
-        max_length=250,
-        required=False,
-        strip=True,
-        label=False,
-        initial = '',
-        widget=forms.Textarea({"rows": 3}),
-    )
-
-    class Meta:
-        model = CheckoutLine
-        fields = ["orderline_note"]
-
-
 class AddToCheckoutForm(forms.Form):
     """Add-to-checkout form.
 
@@ -221,7 +203,7 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
         variant = self.get_variant(self.cleaned_data)
         quantity = self.cleaned_data["quantity"]
 
-        pprint("Inside save data::" + str(self))
+        pprint("Inside ReplaceCheckoutLineForm save self::" + str(self))
         orderline_note = self.cleaned_data["orderline_note"]
 
         logger.info("ReplaceCheckoutLineForm Save Checkout cleaned_data:")

@@ -9,8 +9,7 @@ from django.template.response import TemplateResponse
 from ...account.forms import LoginForm
 from ...core.taxes import get_display_price, quantize_price, zero_taxed_money
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
-from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm, \
-    CheckoutLineNoteField
+from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
 from ..models import Checkout
 from ..utils import (
     check_product_availability_and_warn,
@@ -96,6 +95,9 @@ def checkout_shipping_method(request, checkout):
 @validate_checkout
 @add_voucher_form
 def checkout_order_summary(request, checkout):
+    print("checkout/views/init checkout_order_summary Begin")
+    print("Checkout")
+    pprint(checkout)
     """Display the correct order summary."""
     if checkout.is_shipping_required():
         view = validate_shipping_method(summary_with_shipping_view)
@@ -182,6 +184,7 @@ def checkout_index(request, checkout):
     )
     print("checkout/views/init checkout_index:  End )")
     print("context=" + str(context))
+
     return TemplateResponse(request, "checkout/index.html", context)
 
 
@@ -281,11 +284,14 @@ def clear_checkout(request, checkout):
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
 def checkout_dropdown(request, checkout):
+    print("checkout/views/init checkout_dropdown Begin")
     """Display a checkout summary suitable for displaying on all pages."""
     discounts = request.discounts
     manager = request.extensions
 
+
     def prepare_line_data(line):
+        print("checkout/views/init checkout_dropdown.prepare_line_data line"+str(line))
         first_image = line.variant.get_first_image()
         if first_image:
             first_image = first_image.image
@@ -296,6 +302,7 @@ def checkout_dropdown(request, checkout):
             "image": first_image,
             "line_total": manager.calculate_checkout_line_total(line, discounts),
             "variant_url": line.variant.get_absolute_url(),
+            "orderline_note": "",
         }
 
     if checkout.quantity == 0:
@@ -306,5 +313,6 @@ def checkout_dropdown(request, checkout):
             "total": manager.calculate_checkout_subtotal(checkout, discounts),
             "lines": [prepare_line_data(line) for line in checkout],
         }
+        print("checkout/views/init checkout_dropdown.prepare_line_data data" + str(data))
 
     return render(request, "checkout_dropdown.html", data)
