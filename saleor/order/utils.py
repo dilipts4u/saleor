@@ -119,6 +119,8 @@ def update_order_prices(order, discounts):
     for line in order:  # type: OrderLine
         if line.variant:
             unit_price = line.variant.get_price(discounts)
+            #orderline_note = line.orderline_note
+            #line.orderline_note = orderline_note
             unit_price = TaxedMoney(unit_price, unit_price)
             line.unit_price = unit_price
             line.save(

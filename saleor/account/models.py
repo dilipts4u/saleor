@@ -150,6 +150,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
 
     USERNAME_FIELD = "email"
+    test = models.CharField(max_length=256, blank=True)
 
     objects = UserManager()
 
@@ -178,6 +179,9 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     def get_short_name(self):
         return self.email
+
+    def get_test(self):
+        return self.test
 
     def get_ajax_label(self):
         address = self.default_billing_address

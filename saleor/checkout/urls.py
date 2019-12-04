@@ -1,14 +1,14 @@
 from django.conf.urls import url
+from django.urls import path
 
 from . import views
 from .views.discount import remove_voucher_view
 
+
 checkout_urlpatterns = [
     url(r"^$", views.checkout_index, name="index"),
     url(r"^start$", views.checkout_start, name="start"),
-    url(
-        r"^update/(?P<variant_id>\d+)/$", views.update_checkout_line, name="update-line"
-    ),
+    url(r"^update/(?P<variant_id>\d+)/$", views.update_checkout_line, name="update-line"),
     url(r"^clear/$", views.clear_checkout, name="clear"),
     url(
         r"^shipping-options/$", views.checkout_shipping_options, name="shipping-options"
@@ -22,3 +22,8 @@ checkout_urlpatterns = [
     url(r"^remove_voucher/", remove_voucher_view, name="remove-voucher"),
     url(r"^login/", views.checkout_login, name="login"),
 ]
+
+# url(r"^update/(?P<variant_id>\d+)/(?P<orderline_note>)", views.update_checkout_line, name="update-line"),
+#  url(r"^update/(?P<variant_id>\d+)/$", views.update_checkout_line, name="update-line"),
+
+

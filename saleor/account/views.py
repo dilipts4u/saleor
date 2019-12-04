@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth import views as django_views
@@ -40,11 +42,19 @@ def logout(request):
 
 
 def signup(request):
+    print("/account/views/ signup: Begin")
+    pprint(request)
     form = SignupForm(request.POST or None)
     if form.is_valid():
         form.save()
         password = form.cleaned_data.get("password")
         email = form.cleaned_data.get("email")
+        test = form.cleaned_data.get("test")
+        print("After SignupForm Save")
+        print("email =")
+        pprint(email)
+        print("test =")
+        pprint(test)
         user = auth.authenticate(request=request, email=email, password=password)
         if user:
             auth.login(request, user)

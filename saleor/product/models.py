@@ -414,6 +414,7 @@ class ProductVariantQueryset(models.QuerySet):
 class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
+    orderline_note = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
         default=settings.DEFAULT_CURRENCY,
@@ -490,6 +491,9 @@ class ProductVariant(ModelWithMetadata):
 
     def get_price(self, discounts: Iterable[DiscountInfo] = None):
         return calculate_discounted_price(self.product, self.base_price, discounts)
+
+    def getOrderlineNote(self):
+        return self.orderline_note
 
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight

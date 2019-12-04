@@ -45,6 +45,8 @@ class CheckoutLine(CountableDjangoObjectType):
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered."
     )
+    orderline_note = graphene.String(required=False,
+                                     description="A Orderline Notes field column for the Checkout line.")
 
     class Meta:
         only_fields = ["id", "orderline_note", "quantity", "variant"]

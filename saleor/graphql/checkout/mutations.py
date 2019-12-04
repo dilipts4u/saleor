@@ -263,7 +263,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if variants and quantities:
             for variant, quantity, orderline_note in zip(variants, quantities):
                 try:
-                    print("CheckoutCreate: quantity:%d orderline_note:%s", quantity, orderline_note)
+                    print("/graphq/checkout/mutations/saveCheckoutCreate: quantity:%d orderline_note:%s", quantity, orderline_note)
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
                     raise ValidationError(

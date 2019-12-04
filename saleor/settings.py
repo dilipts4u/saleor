@@ -42,7 +42,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 ALLOWED_CLIENT_HOSTS = get_list(
-    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1")
+    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1,0.0.0.0")
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
@@ -309,7 +309,7 @@ if ENABLE_SILK:
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "root": {"level": "INFO", "handlers": ["console"]},
+    "root": {"level": "DEBUG", "handlers": ["console"]},
     "formatters": {
         "verbose": {
             "format": (

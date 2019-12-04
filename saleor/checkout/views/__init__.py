@@ -125,6 +125,8 @@ def checkout_index(request, checkout):
         pass
 
     lines = checkout.lines.select_related("variant__product__product_type")
+    print("checkout/views/init  checkout_index lines 1")
+    pprint(lines)
     lines = lines.prefetch_related(
         "variant__translations",
         "variant__product__translations",
@@ -133,13 +135,15 @@ def checkout_index(request, checkout):
         "variant__images",
         "variant__product__product_type__variant_attributes",
     )
+    print("checkout/views/init  checkout_index lines 2----->")
+    pprint(lines)
     manager = request.extensions
     for line in lines:
         print(" Init checkout_index line:")
         pprint("line:"+str(line))
         pprint("line.variant:"+str(line.variant))
-        initial = {"quantity": line.quantity}
-        #orderline_note = {"orderline_note": line.orderline_note}
+        # initial = {"quantity": line.quantity, "orderline_note": line.variant.orderline_note}
+        initial = {"quantity": line.quantity }
 
         form = ReplaceCheckoutLineForm(
             None,
@@ -211,6 +215,14 @@ def checkout_shipping_options(request, checkout):
 
 @get_or_empty_db_checkout(Checkout.objects.prefetch_related("lines__variant__product"))
 def update_checkout_line(request, checkout, variant_id):
+    #print("DK  orderline_note= " + str(orderline_note))
+    print("checkout/views/init  update_checkout_line checkout: Begin")
+    print("variant_id = " + str(variant_id))
+    print("checkout = ")
+    pprint(checkout)
+    print("request = ")
+    pprint(request)
+
     print("checkout/views/init  update_checkout_line Begin")
     """Update the line quantities."""
     if not request.is_ajax():
@@ -221,6 +233,7 @@ def update_checkout_line(request, checkout, variant_id):
     pprint(str(checkout))
 
     checkout_line = get_object_or_404(checkout.lines, variant_id=variant_id)
+    #checkout_line = get_object_or_404(checkout.lines, variant_id=variant_id, orderline_note=orderline_note)
     #orderline_note = CheckoutLineNoteField(request.POST or None)
     #print("Init Update CheckoutLine orderline_note:" + str(orderline_note))
     print("checkout/views/init  update_checkout_line checkout_line:"+ str(checkout_line))
@@ -243,12 +256,33 @@ def update_checkout_line(request, checkout, variant_id):
     manager = request.extensions
     if form.is_valid():
         form.save()
+
+        print("checkout/views/init  update_checkout_line  After form save form: --->")
+        pprint(form)
+        print("checkout/views/init  update_checkout_line  After form.fields: --->")
+        for field in form.fields:
+            field_key = field
+            value = form.cleaned_data[field_key]
+            print("field:"+str(field))
+            print("Name:"+form[field].name)
+            print("field_key:")
+            pprint(field_key)
+            print(" value:")
+            pprint(value)
+
         checkout.refresh_from_db()
         # Refresh obj from db and confirm that checkout still has this line
         checkout_line = checkout.lines.filter(variant_id=variant_id).first()
+        print("checkout_line:"+str(checkout_line))
         line_total = zero_taxed_money(currency=settings.DEFAULT_CURRENCY)
         if checkout_line:
             line_total = manager.calculate_checkout_line_total(checkout_line, discounts)
+            orderline_note_from_form = form.cleaned_data.get("orderline_note")
+            print("checkout/views/init  update_checkout_line  After form save/refresh_from_db orderline_note_from_form:")
+            pprint(orderline_note_from_form)
+            # orderline_note = checkout_line.get_orderline()
+            # print("checkout/views/init  update_checkout_line  After form save/refresh_from_db orderline_note:")
+            # pprint(orderline_note)
         subtotal = get_display_price(line_total)
         response = {
             "variantId": variant_id,
@@ -285,25 +319,38 @@ def clear_checkout(request, checkout):
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
 def checkout_dropdown(request, checkout):
     print("checkout/views/init checkout_dropdown Begin")
+    print("checkout/views/init checkout_dropdown checkout:")
+    pprint(checkout)
+    print("checkout/views/init checkout_dropdown request:")
+    pprint(request)
     """Display a checkout summary suitable for displaying on all pages."""
     discounts = request.discounts
     manager = request.extensions
 
 
     def prepare_line_data(line):
-        print("checkout/views/init checkout_dropdown.prepare_line_data line"+str(line))
+        print("checkout/views/init checkout_dropdown.prepare_line_data line Begin")
+        print("checkout/views/init checkout_dropdown.prepare_line_data line:")
+        pprint(line)
+        print("checkout/views/init checkout_dropdown.prepare_line_data line.variant:")
+        pprint(line.variant)
+        print("checkout/views/init checkout_dropdown.prepare_line_data line.variant.product:")
+        pprint(line.variant.product)
         first_image = line.variant.get_first_image()
         if first_image:
             first_image = first_image.image
-        return {
+        line_output = {
             "product": line.variant.product,
             "variant": line.variant,
             "quantity": line.quantity,
             "image": first_image,
             "line_total": manager.calculate_checkout_line_total(line, discounts),
             "variant_url": line.variant.get_absolute_url(),
-            "orderline_note": "",
+            "orderline_note": line.orderline_note,
         }
+        print("checkout/views/init checkout_dropdown.prepare_line_data line_output:")
+        pprint(line_output)
+        return line_output
 
     if checkout.quantity == 0:
         data = {"quantity": 0}
@@ -313,6 +360,7 @@ def checkout_dropdown(request, checkout):
             "total": manager.calculate_checkout_subtotal(checkout, discounts),
             "lines": [prepare_line_data(line) for line in checkout],
         }
-        print("checkout/views/init checkout_dropdown.prepare_line_data data" + str(data))
+        print("checkout/views/init checkout_dropdown.prepare_line_data data:")
+        pprint(data)
 
     return render(request, "checkout_dropdown.html", data)

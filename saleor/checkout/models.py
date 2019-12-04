@@ -166,7 +166,7 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    orderline_note = models.CharField(max_length=255, blank=True, null=True)
+    orderline_note = models.CharField(max_length=255, blank=True)
     data = JSONField(blank=True, default=dict)
     print("Inside CheckoutLine: data:" + str(data))
 
@@ -189,8 +189,7 @@ class CheckoutLine(models.Model):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        print("Inside checkout:models  CheckoutLine.__repr__: self.orderline_note:")
-        print(self.orderline_note)
+        print("Inside checkout:models  CheckoutLine.__repr__: self.orderline_note:",self.orderline_note)
         return "CheckoutLine(variant=%r, quantity=%r, orderline_note=%r)" % (self.variant, self.quantity, self.orderline_note)
 
     def __getstate__(self):
@@ -198,7 +197,18 @@ class CheckoutLine(models.Model):
         return self.variant, self.quantity, self.orderline_note
 
     def __setstate__(self, data):
-        self.variant, self.quantity, self.orderline_note = data
+        print("Inside checkout:models  CheckoutLine.__setstate__: data:" + data)
+        print(data)
+        pprint(data)
+        print("Inside checkout:models  CheckoutLine.__setstate__: self.orderline_note:" + self.orderline_note)
+        self.variant, self.quantity, self.variant.orderline_note = data
+
+    def __setOrderlineNote__(self, data):
+        print("Inside checkout:models  CheckoutLine.__setOrderlineNote__: data:" + data)
+        print(data)
+        pprint(data)
+        print("Inside checkout:models  CheckoutLine.__setstate__: self.orderline_note:" + self.orderline_note)
+        self.variant, self.quantity, self.variant.orderline_note = data
 
     def get_orderline_note(self):
         return self.orderline_note

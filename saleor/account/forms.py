@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from captcha.fields import ReCaptchaField
 from django import forms
 from django.conf import settings
@@ -91,21 +93,47 @@ class SignupForm(forms.ModelForm, FormWithReCaptcha):
             )
         },
     )
+    test = forms.CharField( widget=forms.TextInput, label=pgettext("Test", "Test") )
 
     class Meta:
         model = User
-        fields = ("email",)
+        fields = ("email", "test")
 
     def __init__(self, *args, **kwargs):
+        print("/account/forms/ __init__: Begin")
         super().__init__(*args, **kwargs)
+
+        for field in self.fields:
+            field_key = field
+            value = self.fields[field_key]
+            print("field:"+str(field))
+            pprint(field)
+            print("Name:"+self[field].name)
+            print("field_key:")
+            pprint(field_key)
+            print(" value:")
+            pprint(value)
+
         if self._meta.model.USERNAME_FIELD in self.fields:
             self.fields[self._meta.model.USERNAME_FIELD].widget.attrs.update(
                 {"autofocus": ""}
             )
 
+        if self._meta.model.test in self.fields:
+            self.fields[self.test].widget.attrs.update({"autofocus": ""})
+
     def save(self, request=None, commit=True):
         user = super().save(commit=False)
         password = self.cleaned_data["password"]
+        test = self.cleaned_data["test"]
+
+        print("Saving SignupForm  test field with Commit:", str(commit))
+        pprint(test)
+        print("pass")
+        pprint(password)
+        print("user")
+        pprint(user)
+
         user.set_password(password)
         if commit:
             user.save()

@@ -297,7 +297,7 @@ def update_checkout_quantity(checkout):
 
 
 def check_variant_in_stock(
-    checkout, variant, quantity=1, replace=False, check_quantity=True
+    checkout, variant, quantity=1, replace=False, check_quantity=True, orderline_note=""
 ) -> Tuple[int, Optional[CheckoutLine]]:
     """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
@@ -325,11 +325,13 @@ def add_variant_to_checkout(
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
+    print("checkout/utils: add_variant_to_checkout Begin with quantity:{} orderline_note:{}".format(quantity, orderline_note))
 
     new_quantity, line = check_variant_in_stock(
         checkout,
         variant,
         quantity=quantity,
+        orderline_note = variant.orderline_note,
         replace=replace,
         check_quantity=check_quantity,
     )
@@ -345,54 +347,6 @@ def add_variant_to_checkout(
     elif new_quantity > 0:
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
-
-    update_checkout_quantity(checkout)
-
-
-# TODO Add orderline_note="", to arg
-def add_variant_to_checkout1(
-    checkout, variant, quantity=1, orderline_note="", replace=False, check_quantity=True
-):
-    """Add a product variant to checkout.
-
-    If `replace` is truthy then any previous quantity is discarded instead
-    of added to.
-    """
-
-    new_quantity, line = check_variant_in_stock(
-        checkout,
-        variant,
-        quantity=quantity,
-        replace=replace,
-        check_quantity=check_quantity,
-    )
-    print("new_quantity:",new_quantity)
-
-    new_line_note, line = orderline_note #check_line_note(checkout, variant, orderline_note=orderline_note, replace=replace)
-    print("new_line_note:" + str(new_line_note))
-
-    if line is None:
-        line = checkout.lines.filter(variant=variant).first()
-
-    if orderline_note is None:
-        orderline_note = "Test"
-
-    if new_quantity == 0:
-        if line is not None:
-            line.delete()
-    elif line is None:
-        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity, orderline_note=orderline_note)
-    elif new_quantity > 0:
-        line.quantity = new_quantity
-        line.orderline_note = new_line_note
-        print("new_line_note:"+new_line_note)
-        #logger.info("line.save the add_variant_to_checkout line.orderline_note:",str(orderline_note))
-        #logger.info("line.save the add_variant_to_checkout line.quantity:",str(line.quantity))
-        #logger.info("line.save the add_variant_to_checkout line.orderline_note:",
-        #           str(line.orderline_note))
-        logger.info("add_variant_to_checkout Save line:")
-        pprint(vars(line))
-        line.save(update_fields=["quantity", "orderline_note"])
 
     update_checkout_quantity(checkout)
 
@@ -1086,6 +1040,10 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
     print("checkout/utils create_line_for_order Begin")
+    print("checkout_line")
+    pprint(checkout_line)
+    print("checkout_line.variant")
+    pprint(checkout_line.variant)
     quantity = checkout_line.quantity
     variant = checkout_line.variant
     product = variant.product
@@ -1209,8 +1167,8 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
-    print("create_order order_lines:"+str(order_lines))
-    #logger.info("create_order order_lines:",str(order_lines))
+    print("create_order order_lines:-------------->"+str(order_lines))
+    pprint(order_lines)
 
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
     order.lines.set(order_lines, bulk=False)

@@ -265,6 +265,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
+    test = graphene.String(description="A test field column for  the customer.")
 
     class Meta:
         description = "Represents user data."
@@ -283,6 +284,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
             "last_name",
             "note",
             "token",
+            "test",
         ]
 
     @staticmethod

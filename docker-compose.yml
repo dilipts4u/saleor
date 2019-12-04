@@ -14,6 +14,10 @@ services:
     depends_on:
       - db
       - redis
+    command: ["./wait-for-postgres.sh", "saleor", "python3", "app.py"]
+    links:
+      - db
+      - redis
 
   db:
     image: library/postgres:11.1-alpine

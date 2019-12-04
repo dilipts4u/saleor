@@ -34,8 +34,18 @@ class QuantityField(forms.IntegerField):
             **kwargs,
         )
 
+class OrderLineNoteField(forms.CharField):
 
-class AddToCheckoutForm(forms.Form):
+    def __init__(self, **kwargs):
+        super().__init__(
+            max_length=255, required=False, strip=True,
+            widget=forms.Textarea({"rows": 3}),
+            initial='This is default text.',
+            **kwargs,
+        )
+
+
+class AddToCheckoutForm(forms.ModelForm): #forms.Form):
     """Add-to-checkout form.
 
     Allows selection of a product variant and quantity.
@@ -47,10 +57,13 @@ class AddToCheckoutForm(forms.Form):
         label=pgettext_lazy("Add to checkout form field label", "Quantity")
     )
 
-    orderline_note = forms.CharField(max_length=255, required=False, strip=True,
-                                     widget=forms.Textarea({"rows": 3}))
-
-    print("AddToCheckoutForm Begin orderline_note:" + str(orderline_note))
+    # orderline_note =  forms.CharField( widget=forms.Textarea({"rows": 3}),
+    #                                    max_length=255, required=False, strip=True,
+    #                                    label=pgettext_lazy("Note To the Orderline field",
+    #                                                        "OrderlineNote")
+    # )
+    #
+    # print("AddToCheckoutForm Begin orderline_note:" + str(orderline_note))
 
     error_messages = {
         "not-available": pgettext_lazy(
@@ -93,15 +106,23 @@ class AddToCheckoutForm(forms.Form):
         already there) does not exceed available quantity.
         """
         cleaned_data = super().clean()
-        pprint("AddToCheckoutForm:clean cleaned_data"+str(cleaned_data))
+        pprint("AddToCheckoutForm:clean CLEANED_DATA:")
+        pprint(cleaned_data)
         quantity = cleaned_data.get("quantity")
+        #orderline_note = cleaned_data.get("orderline_note")
+        #print("DK 2 = " + str(orderline_note))
+
         if quantity is None:
             return cleaned_data
         variant = self.get_variant(cleaned_data)
+        print("variant")
+        pprint(variant)
         if variant is None:
             self.add_error_i18n(NON_FIELD_ERRORS, "variant-does-not-exists")
         else:
             line = self.checkout.get_line(variant)
+            print("AddToCheckoutForm:clean line")
+            pprint(line)
             used_quantity = line.quantity if line else 0
             new_quantity = quantity + used_quantity
 
@@ -128,6 +149,8 @@ class AddToCheckoutForm(forms.Form):
         from .utils import add_variant_to_checkout
 
         print("AddToCheckoutForm Begin save:")
+        print("self.cleaned_data")
+        pprint(self.cleaned_data)
         variant = self.get_variant(self.cleaned_data)
         quantity = self.cleaned_data["quantity"]
 
@@ -136,9 +159,12 @@ class AddToCheckoutForm(forms.Form):
         logger.info("AddToCheckoutForm Save cleaned_data:")
         pprint(str(self.cleaned_data))
 
-        orderline_note = self.cleaned_data["orderline_note"]
-        print("AddToCheckoutForm: quantity:%d ", quantity)
-        add_variant_to_checkout(self.checkout, variant,  quantity)
+        #orderline_note = self.cleaned_data["orderline_note"]
+        #orderline_note = ''
+        print("AddToCheckoutForm: quantity: ", quantity)
+        #print("AddToCheckoutForm: orderline_note: ", orderline_note)
+        #add_variant_to_checkout(self.checkout, variant,  quantity, orderline_note)
+        add_variant_to_checkout(self.checkout, variant, quantity)
 
     def get_variant(self, cleaned_data):
         """Return a product variant that matches submitted values.
@@ -155,18 +181,32 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
 
     Similar to AddToCheckoutForm but its save method replaces the quantity.
     """
-    #orderline_note = CheckoutLineNoteField(label=pgettext_lazy("Add to checkoutline form field label", "OrderLine_Note"))
+    #widget=forms.Textarea({"rows": 3}),
+    orderline_note = forms.CharField(widget=forms.Textarea({"rows": 3}),
+                                     initial='Default.', required=False,
+                                     max_length=255,  strip=True,
+                                     label=pgettext_lazy("Note To the Orderline field",
+                                                         "orderline_note"))
+    #rderline_note = forms.CharField(widget=forms.TextInput, label=pgettext_lazy("Test", "Test"))
 
     def __init__(self, *args, **kwargs):
         print("checkout/forms ReplaceCheckoutLineForm.init ")
         self.variant = kwargs.pop("variant")
+        self.orderline_note = "" #kwargs.pop("orderline_note")
         super().__init__(*args, product=self.variant.product, **kwargs)
         self.fields["quantity"].widget.attrs = {
             "min": 1,
             "max": settings.MAX_CHECKOUT_LINE_QUANTITY,
         }
-        self.fields["orderline_note"].initial = 'This is default text.'
+        #self.fields['orderline_note'].widget = forms.Textarea
+        self.fields["orderline_note"].widget.attrs.update({"autofocus": "" })
+        #self.fields["orderline_note"].initial = 'This is default text.'
+        #self.fields["orderline_note"] = forms.CharField(max_length=255, required=False, strip=True,
+        #                                 widget=forms.Textarea({"rows": 3}))
 
+    class Meta:
+        model = CheckoutLine
+        fields = ["quantity", "orderline_note"]
 
     def clean_quantity(self):
         """Clean the quantity field.
@@ -186,6 +226,7 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
         """Clean the form skipping the add-to-form checks."""
         # explicitly skip parent's implementation
         # pylint: disable=E1003
+        print("---->Inside ReplaceCheckoutLineForm  clean::" + str(self))
         return super(AddToCheckoutForm, self).clean()
 
     def get_variant(self, cleaned_data):
@@ -196,30 +237,50 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
         """
         return self.variant
 
+    def get_orderline(self):
+        return self.orderline_note
+
     def save(self):
         """Replace the selected product's quantity in checkout."""
         from .utils import add_variant_to_checkout
 
+        pprint("ReplaceCheckoutLineForm Save Checkout cleaned_data::" + str(self.cleaned_data))
+
         variant = self.get_variant(self.cleaned_data)
         quantity = self.cleaned_data["quantity"]
+        print("ReplaceCheckoutLineForm Save Checkout variant:{} quantity:{}".format(variant, quantity))
 
-        pprint("Inside ReplaceCheckoutLineForm save self::" + str(self))
-        orderline_note = self.cleaned_data["orderline_note"]
+        #orderline_note = self.get_orderline[self.cleaned_data]
+        orderline_note = self.fields["orderline_note"]
+        print("ReplaceCheckoutLineForm Save Checkout orderline_note:", orderline_note)
 
-        logger.info("ReplaceCheckoutLineForm Save Checkout cleaned_data:")
-        pprint("cleaned_data::" + str(self.cleaned_data))
+        print("ReplaceCheckoutLineForm Save Checkout Field Iterate")
+        for field in self.fields:
+            field_key = field
+            value = self.cleaned_data[field_key]
+            print("field:"+str(field))
+            print("Name:"+self[field].name)
+            print("field_key:" + str(field_key)+ " value:" + str(value))
+
+        #pprint("Inside ReplaceCheckoutLineForm save self::" + str(self))
+        #orderline_note1 = self.fields["orderline_note"]
+        #logger.info("ReplaceCheckoutLineForm Save Checkout orderline_note1:",orderline_note1)
+
+        #orderline_note2 = self.orderline_note
+        #logger.info("ReplaceCheckoutLineForm Save Checkout orderline_note2:" + str(orderline_note2))
+
+
         logger.info("ReplaceCheckoutLineForm Save Checkout variant:")
         pprint(vars(variant))
 
-        orderline_note1 = self.fields["orderline_note"]
+
         #self.orderline_note
         #"" # self.cleaned_data["orderline_note"]
         #orderline_note = "" # variant.orderline_note #self.cleaned_data["orderline_note"]
-        print("ReplaceCheckoutLineForm Save Checkout:"+str(self.checkout))
+        print("ReplaceCheckoutLineForm Save Checkout:",(self.checkout))
         pprint(self.checkout)
         print("orderline_note:"+str(orderline_note))
-        print("orderline_note1:" + str(orderline_note1))
-        print("ReplaceCheckoutLineForm: quantity:%d orderline_note:%s", quantity, orderline_note)
+        print("ReplaceCheckoutLineForm: quantity:{} orderline_note:{}".format(quantity, orderline_note))
         add_variant_to_checkout(self.checkout, variant, quantity, orderline_note, replace=True)
 
 

@@ -50,30 +50,31 @@
                 <p>{{ line.variant.product.translated }}<br><small>{{ line.variant.translated }}</small></p>
               </a>
             </div>
+          <form role="form" action="{% url "checkout:update-line" variant_id=line.variant.pk %}" id="post-form" name="checkoutForm" method="post" class="form-checkout">
+            <!-- orderline_note=line.form.orderline_note.value -->
 
-          <form role="form" action="{% url "checkout:update-line" variant_id=line.variant.pk %}" method="post" class="form-checkout">
-              <div class="col-md-3 checkout-preview__line__note">
-                         <textarea id="id_orderline_note" maxlength="250"  name="orderline_note">{{ line.form.orderline_note.value }}</textarea>
-              </div>
-              {% csrf_token %}
-              <div class="col-md-2 checkout-preview__line__quantity col-2">
-                    <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
-                      {{ line.form.quantity }}
-                    </div>
-                    {% csrf_token %}
-                  <span class="checkout-preview-item-delete">
-                    <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
-                  </span>
-                  <small class="checkout-preview__line__quantity-error text-danger"></small>
-              </div>
-              <div class="col-md-2 FRcheckout-preview-item-price col-2" data-product-id="{{ line.variant.pk }}">
+                <div class="col-md-2 checkout-preview__line__note">
+                  <textarea maxlength="255" name="orderline_note"   id="orderline_note">{{ line.form.orderline_note.value }}</textarea>
+                </div>
+
+                <div class="col-md-2 checkout-preview__line__quantity col-2">
+                      <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
+                        {{ line.form.quantity }}
+                      </div>
+                      {% csrf_token %}
+                    <span class="checkout-preview-item-delete">
+                      <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
+                    </span>
+                    <small class="checkout-preview__line__quantity-error text-danger"></small>
+                </div>
+
+          </form>
+
+          <div class="col-md-2 FRcheckout-preview-item-price col-2" data-product-id="{{ line.variant.pk }}">
                   <p class="text-right">
                     {% price line.get_total %}
                   </p>
-              </div>
           </div>
-          </form>
-
         </div>
       {% endfor %}
       <div class="checkout__subtotal">

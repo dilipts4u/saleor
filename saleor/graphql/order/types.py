@@ -211,6 +211,9 @@ class OrderLine(CountableDjangoObjectType):
         required=True, description="Variant name in the customer's language"
     )
 
+    orderline_note = graphene.String(required=False,
+                                     description="A Orderline Notes field column for the Checkout Order line.")
+
     class Meta:
         description = "Represents order line of particular order."
         model = models.OrderLine
@@ -223,6 +226,7 @@ class OrderLine(CountableDjangoObjectType):
             "variant_name",
             "product_sku",
             "quantity",
+            "orderline_note",
             "quantity_fulfilled",
             "tax_rate",
         ]
